@@ -1,5 +1,6 @@
 package com.hongdingltd.refirepad;
 
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Point;
 import android.media.AudioManager;
@@ -65,7 +66,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        this.sizeChanged(mediaPlayer.getVideoWidth(), mediaPlayer.getVideoHeight());
+        if(mediaPlayer != null) {
+            this.sizeChanged(mediaPlayer.getVideoWidth(), mediaPlayer.getVideoHeight());
+        }
     }
 
     private void surfaceReady() {
@@ -145,8 +148,11 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onCompletion(MediaPlayer mp) {
             Log.d(TAG, "onCompletion call");
+
             // repeat
-            context.startVideoPlayback();
+            //context.startVideoPlayback();
+
+            gotoInfo();
         }
 
         @Override
@@ -162,6 +168,14 @@ public class MainActivity extends AppCompatActivity {
             context.sizeChanged(width, height);
             context.startVideoPlayback();
         }
+
+        private void gotoInfo() {
+            Intent intent = new Intent(context, InfoActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+            startActivity(intent);
+            finish();
+        }
+
     }
 
 
