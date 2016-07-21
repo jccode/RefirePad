@@ -1,5 +1,6 @@
 package com.hongdingltd.refirepad;
 
+import android.content.res.Configuration;
 import android.graphics.Point;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -12,7 +13,6 @@ import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
 
-import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        requestFullscreen();
+        requestFullscreen();
         setContentView(R.layout.activity_main);
 
         surfaceView = (SurfaceView) findViewById(R.id.surface);
@@ -43,7 +43,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void requestFullscreen() {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getSupportActionBar().hide();
     }
 
     @Override
@@ -60,20 +62,24 @@ public class MainActivity extends AppCompatActivity {
         cleanUp();
     }
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        this.sizeChanged(mediaPlayer.getVideoWidth(), mediaPlayer.getVideoHeight());
+    }
+
     private void surfaceReady() {
         this.playVideo();
     }
 
     private void sizeChanged(int width, int height) {
-//        this.width = width;
-//        this.height = height;
         this.isVideoSizeKnow = true;
 
         Point p = new Point();
         currDisplay.getSize(p);
-        System.out.println("size changed. width="+width+";height="+height+
-                "; display,width="+currDisplay.getWidth()+";height="+currDisplay.getHeight() +
-                "; display,width="+p.x+";height="+p.y);
+//        System.out.println("size changed. width="+width+";height="+height+
+//                "; display,width="+currDisplay.getWidth()+";height="+currDisplay.getHeight() +
+//                "; display,width="+p.x+";height="+p.y);
 
         // scale
         float wRatio = (float)width / p.x;
@@ -82,6 +88,8 @@ public class MainActivity extends AppCompatActivity {
 
         this.width = (int)Math.ceil(width / ratio);
         this.height = (int)Math.ceil(height / ratio);
+
+        holder.setFixedSize(this.width, this.height);
     }
 
     private void videoPrepared() {
@@ -109,7 +117,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void startVideoPlayback() {
         if(isVideoReady && isVideoSizeKnow) {
-            holder.setFixedSize(width, height);
             mediaPlayer.start();
         }
     }
@@ -138,6 +145,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onCompletion(MediaPlayer mp) {
             Log.d(TAG, "onCompletion call");
+            // repeat
+            context.startVideoPlayback();
         }
 
         @Override
