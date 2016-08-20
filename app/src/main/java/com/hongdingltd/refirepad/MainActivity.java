@@ -26,11 +26,14 @@ public class MainActivity extends AppCompatActivity {
 
     private int width;
     private int height;
+    private int videoPosition;
     private boolean isVideoReady;
     private boolean isVideoSizeKnow;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate called!");
+
         super.onCreate(savedInstanceState);
         requestFullscreen();
         setContentView(R.layout.activity_main);
@@ -40,6 +43,12 @@ public class MainActivity extends AppCompatActivity {
         holder.addCallback(new SurfaceCallback(this));
         listener = new MediaPlayerListener(this);
         currDisplay = this.getWindowManager().getDefaultDisplay();
+
+        if(savedInstanceState != null) {
+            int position = savedInstanceState.getInt("position");
+            videoPosition = position;
+            Log.d(TAG, "onCreate postion: "+position);
+        }
     }
 
     private void requestFullscreen() {
@@ -51,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        Log.d(TAG, "onDestroy called!");
         super.onDestroy();
         releaseMediaPlayer();
         cleanUp();
@@ -58,16 +68,41 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
+        Log.d(TAG, "onPause called!");
         super.onPause();
         releaseMediaPlayer();
         cleanUp();
+
+        saveCurrentPosition();
     }
+
+//    @Override
+//    protected void onResume() {
+//        Log.d(TAG, "onResume called!");
+//        super.onResume();
+//        if(mediaPlayer != null) {
+//            startVideoPlayback();
+//        }
+//    }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         if(mediaPlayer != null) {
             this.sizeChanged(mediaPlayer.getVideoWidth(), mediaPlayer.getVideoHeight());
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        saveCurrentPosition();
+        outState.putInt("position", this.videoPosition);
+        super.onSaveInstanceState(outState);
+    }
+
+    private void saveCurrentPosition() {
+        if (mediaPlayer != null) {
+            this.videoPosition = mediaPlayer.getCurrentPosition();
         }
     }
 
@@ -109,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
     private void playVideo() {
         cleanUp();
 
-        mediaPlayer =  MediaPlayer.create(this, R.raw.sample);
+        mediaPlayer =  MediaPlayer.create(this, R.raw.refire_introduce);
         mediaPlayer.setDisplay(holder);
         mediaPlayer.setOnBufferingUpdateListener(listener);
         mediaPlayer.setOnCompletionListener(listener);
@@ -119,7 +154,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startVideoPlayback() {
+        Log.d(TAG, "startVideoPlayback. position"+videoPosition );
         if(isVideoReady && isVideoSizeKnow) {
+            if(videoPosition != 0) {
+                mediaPlayer.seekTo(videoPosition);
+            }
             mediaPlayer.start();
         }
     }
